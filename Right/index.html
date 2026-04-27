@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<link href="tutStyles.css" rel="stylesheet">
+
+<body>
+
+<div class="container">
+
+    <div id="buttonHolder" class="buttonHolder">
+       
+        <button id="start"  class="startButton" onclick="GarageApp.Player.jumpTo(0.0);">start</button>
+
+        <div id="subNav" class="subNav">
+            <div id="appIDdisplay" class="SectionButton">sock 0</div>
+            <div id="playState"    class="SectionButton">null</div>
+            <div id="timecode"     class="SectionButton">time code here</div>
+            <textarea id="messages" rows="4" cols="50" readonly>messages here</textarea>
+        </div>
+
+        <div id="debug" class="buttonHolder"></div>
+
+        <div id="homeNav" class="homeNav">
+            <button id="home" class="SectionButton"
+                    onclick="GarageApp.Player.setSourceByID(0);">home</button>
+        </div>
+    </div>
+
+<!--
+    <div id="qr" class="qrTag">
+        <img src="keyQRblue.png" alt="qr blue" width="500" height="600">
+    </div>
+	-->
+
+    <!-- Portrait 1080×1920 for Proto -->
+    <div>
+        <video width="1080" height="1920" id="vplayer" preload="auto">
+            <source src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+</div>
+
+
+<!-- ① Namespace modules — load order matters -->
+<script src="garageApp.config.js"></script>   <!-- Config + EventDefs  -->
+<script src="garageApp.events.js"></script>   <!-- Events              -->
+<script src="garageApp.player.js"></script>   <!-- Player              -->
+<script src="garageApp.ui.js"></script>       <!-- UI / button factory -->
+<script src="garageApp.socket.js"></script>   <!-- Socket              -->
+
+<!-- ② Bootstrap -->
+<script>
+    // Show app ID in the status bar
+    document.getElementById("appIDdisplay").innerHTML = "Soc " + GarageApp.Config.appID;
+
+    // Wire up DOM references in each module
+    GarageApp.UI.init();
+    GarageApp.Player.init();
+
+    // Load first clip and start playback
+    GarageApp.Player.setSourceByID(0);
+
+    // Connect to WebSocket server.
+    // Pass a custom URL as the argument to override the default:
+    //   GarageApp.Socket.init("ws://192.168.0.105:8080");
+    GarageApp.Socket.init();
+</script>
+
+</body>
+</html>

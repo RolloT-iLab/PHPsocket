@@ -1,0 +1,31 @@
+
+Now I have a clear picture of the codebase. Here's my plan before writing:
+Namespace structure:
+
+GarageApp.Player — video player controls and state
+GarageApp.Events — event list management and time-based triggers
+GarageApp.Socket — WebSocket connection, fully decoupled from inline HTML script
+GarageApp.UI — button factory and DOM helpers
+GarageApp.Config — app ID, clip list, flags (moved from timeEvents.js globals)
+
+The socket in index.html currently uses the ad-hoc outer()/sharedFunction bridge — that gets replaced with a proper GarageApp.Socket.init() that calls GarageApp.Events.doEvent() directly.Created 6 files, ran a command, read a fileCreated 6 files, ran a command, read a fileHere's a summary of what was refactored and why each decision was made.
+The five modules under GarageApp.*:
+garageApp.config.js — holds all variables that were scattered as globals in timeEvents.js (appID, curVideo, bLoop, clipList, etc.) behind a proper getter/setter interface. It also contains EventDefs.load(vID) — the place you author timed events per clip, which now calls GarageApp.Events.add(...) instead of the old bare addEvent().
+garageApp.events.js — owns the event list, the lastEventParsed cursor, and the check() loop called on every ontimeupdate tick. The key public method is doEvent(evData), which is the single entry-point for both timed events and socket-delivered commands — replacing the fragile outer()/sharedFunction bridge entirely.
+garageApp.player.js — all video element wiring, media event listeners, and playback controls. The onended handler was also improved to support your bLoop int-count mode (not just true/false).
+garageApp.ui.js — the button factory and hideButton/showButton helpers, with inline onclick replaced by a proper addEventListener that calls GarageApp.Events.doEvent().
+garageApp.socket.js — the WebSocket logic extracted from the inline <script> block in index.html. It now has a clean init(wsURL) signature so you can swap the server address from the bootstrap block without touching the module itself.
+The index.html bootstrap is now just four lines:
+jsGarageApp.UI.init();
+GarageApp.Player.init();
+GarageApp.Player.setSourceByID(0);
+GarageApp.Socket.init();   // pass a URL string to override the defaultIndexCode · HTML DownloadGarageapp.configJS DownloadGarageapp.eventsJS DownloadGarageapp.playerJS DownloadGarageapp.uiJS DownloadGarageapp.socketJS DownloadDownload allin GarageApp.events.js add a function to allow the socket client to send and event payload to the socket server that affects a different client by ID9:43 AMViewed 2 filesViewed 2 filesGood — I can see the full picture. The Socket.send() raw string method is already there, but there's no structured envelope for targeting a specific remote client by ID. I'll add dispatch(targetID, action) to Events that wraps the payload in a JSON envelope and hands it to Socket.send(), and update Socket.onmessage to parse that envelope and enforce the ID check before calling doEvent.Edited 2 files, viewed a file, read a fileEdited 2 files, viewed a file, read a fileThree things were added/changed:
+dispatch(targetID, action) — the new public method. It wraps the action in a JSON envelope with targetID, senderID (always this client's Config.appID), and the action string, then hands it to Socket.send(). Examples:
+js// target a specific client
+GarageApp.Events.dispatch(2, "GarageApp.Player.jumpTo(30.0)");
+
+// broadcast to every connected client
+GarageApp.Events.dispatch(-1, "GarageApp.Player.pause()");
+doEvent() is now envelope-aware — when a message arrives over the socket it first tries JSON.parse. If it finds the expected { targetID, senderID, action } shape it routes to _handleEnvelope(); if it's plain text (legacy commands, local timed events) it falls through to _execute() as before — so nothing existing breaks.
+_handleEnvelope() — the private gatekeeper. It applies two checks before executing: it drops any message whose senderID matches this client (server echo guard, since most WS servers broadcast back to the sender), and it only executes when targetID matches Config.appID or is -1. Everything else is silently ignored with a console note.
+The envelope schema is documented at the top of the file so your server-side relay code has a clear contract to work against — the server itself just needs to broadcast whatever JSON string it receives to all connected clients; the filtering happens entirely on the client side.

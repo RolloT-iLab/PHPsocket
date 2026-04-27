@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .message {
+            margin-bottom: 8px;
+        }
+
+        .input-area {
+            display: flex;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="messages" id="messages"></div>
+	<!--
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+	-->
+	<div>
+		<button onclick="reset()">reset</button>
+		<BR><BR>
+		<button onclick="restart()">restart logo</button>
+		<button onclick="restartJump()">restart jumpcut</button>
+		
+		<BR><BR>
+		<button onclick="doLoop()">do Loop</button>
+		
+		<BR><BR>
+		<button onclick="doThrow()">doThrow</button>
+		<button onclick="doPause()">Toggle Pause</button>
+		<BR><BR>
+		<button onclick="showDebug()">Show Debug</button>
+		<button onclick="hideDebug()">Hide Debug</button>
+		<!--
+		<button onclick="walkOnWave()">walkOnWave x2</button>
+		<button onclick="walkOffSynch()">walkOffSynch</button>
+		<BR><BR>
+		<button onclick="walkToOne()">walkToOne</button>
+		-->
+		
+		
+		
+		
+	</div>
+</div>
+
+<script>
+    const socket = new WebSocket("ws://localhost:8080");
+    const messagesDiv = document.getElementById("messages");
+    const input = document.getElementById("messageInput");
+
+
+	//creates an unending stack of DIVs, this is display in client only
+    function addMessage(text) {
+        const div = document.createElement("div");
+        div.className = "message";
+        div.textContent = text;
+        messagesDiv.appendChild(div);
+
+        // Auto-scroll
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    socket.onopen = function() {
+        addMessage("✅ Connected to server");
+    };
+
+    socket.onmessage = function(event) {
+        //addMessage("📩 " + event.data);
+    };
+
+    socket.onclose = function() {
+        addMessage("❌ Disconnected from server");
+    };
+
+    function sendMessage() {
+        const message = input.value.trim();
+        if (message === "") return;
+
+        socket.send(message);
+        addMessage("🟢 You: " + message);
+        input.value = "";
+    }
+
+    // Send on Enter key
+    input.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+	
+//===================================== batch scripts ===============================	
+	//prescripted batch messages here
+	//set up blank - all
+	function reset(){
+		let msg = 'GarageApp.Events.clear(-1); GarageApp.Events.add(0.5, null, "GarageApp.Player.pause()", -1  ); GarageApp.Player.jumpTo(0.0);  ';
+		socket.send(msg);
+		//msg = 'GarageApp.Player.pause();  ';
+		//socket.send(msg);
+	}
+	
+	
+	// reset - all
+	function doThrow(){
+		let msg = 'GarageApp.Events.clear(-1); GarageApp.Events.add(54.0, null, "GarageApp.Player.pause()", -1  );'
+		socket.send(msg);
+		msg = 'GarageApp.Player.jumpTo(54.0);';
+		socket.send(msg);
+	}
+
+	function doLoop(){
+		let msg = 'GarageApp.Events.clear(-1); GarageApp.Player.jumpTo(79.0);'
+		socket.send(msg);
+	}
+	
+	
+	function showDebug(){
+		let msg = 'GarageApp.UI.showButton("subNav")';
+		socket.send(msg);
+	}
+	
+	function hideDebug(){
+		let msg = 'GarageApp.UI.hideButton("subNav")';
+		socket.send(msg);
+	}
+	
+	function doPause(){
+		//let msg = 'clearEvents(-1);'
+		//socket.send(msg);
+		msg = 'GarageApp.Player.togglePause();';
+		socket.send(msg);
+	}
+
+	////synch test
+	function restart(){
+		let  msg = 'GarageApp.Events.clear(-1);  '
+			//msg += 	'GarageApp.Events.add(73.0, null, "GarageApp.Player.pause()", -1  );  '
+			msg += 	'GarageApp.Player.jumpTo(0.0);';    
+
+		socket.send(msg);
+	}
+	
+	function restartJump(){
+		let  msg = 'GarageApp.Events.clear(-1);  '
+			//msg += 	'GarageApp.Events.add(73.0, null, "GarageApp.Player.pause()", -1  );  '
+			msg += 	'GarageApp.Player.jumpTo(10.3);';    
+
+		socket.send(msg);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+//========================================================================	
+	//synch walkOn and waves then pause
+	function walkOnWave(){
+		let  msg = 'clearEvents(-1);'
+			msg += 	'addEvent(14.0, null, "jumpTo(40.0)", -1 );'
+			msg += 	'addEvent(44.1, null, "pauseVideo()", -1 ); '
+			msg += 	'appJumpTo(10.0, -1 );'; 
+
+		socket.send(msg);
+	}
+
+	//walkOff 2 directions
+	function walkOffSynch(){
+		let  msg = 'clearEvents(-1);'
+			msg += 	'addEvent(59.1, null, "pauseVideo()", 0 );'
+			msg += 	'addEvent(64.1, null, "pauseVideo()", 1 );' 
+			msg += 	'appJumpTo(55.0, 0 );'  
+			msg += 	'appJumpTo(60.0, 1 );';
+			
+		socket.send(msg);
+	}
+	
+	//walk from 0 to 1
+	function walkToOne(){
+		let  msg = 'clearEvents(-1);'
+		socket.send(msg);
+			
+			msg = 	'addEvent(2.0, null, "pauseVideo()", 0 );'			//set up pause
+			msg +=  'appJumpTo(0.0, 0);'								//start video, pause at 2
+			msg += 	'addEvent(14.0, null, "appJumpTo(60.0, 0 )", 0 );'   //jump to offR
+			msg += 	'addEvent(64.1, null, "pauseVideo()", 0 );'   		//walk offR 0 pause
+			msg += 	'appJumpTo(9.0, 0 );'      						//walk on 0
+			msg += 	'appJumpTo(1.0, 1 );'   //walk on then offR app1
+			msg += 	'addEvent(14.0, null, "pauseVideo()", 1 );'   //walk on then offR app1
+			
+			//I cant track vid tim for th eother isntance, will need app to app communication
+			//msg += 	'appJumpTo(10.0, 1 );';		//walk onL 1
+			//edit video to create linear timed versions that can be triggered
+			//offRight = 60.0 - 64.1   about 4 sec
+			//onLeft 9.0 - 14.0    previous is balnk screen buffer
+			//so: onLeft - 4.1 secs may work
+			
+			//msg += 	'appJumpTo(60.0, 1 );';
+			
+		socket.send(msg);
+	}
+
+
+
+</script>
+
+</body>
+</html>
