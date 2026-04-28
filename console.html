@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>WebSocket Chat</title>
+	
+	<!-- Proper Mobile Scaling -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  
     <style>
         body {
             font-family: Arial, sans-serif;
             background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+           
         }
 
         .chat-container {
@@ -82,6 +83,10 @@
 		<BR><BR>
 		<button onclick="showDebug()">Show Debug</button>
 		<button onclick="hideDebug()">Hide Debug</button>
+		
+		<BR><BR>
+
+		<button onclick="doJump()">jump86</button>
 		<!--
 		<button onclick="walkOnWave()">walkOnWave x2</button>
 		<button onclick="walkOffSynch()">walkOffSynch</button>
@@ -164,6 +169,10 @@
 		socket.send(msg);
 	}
 	
+	function doJump(){
+		let msg = 'GarageApp.Events.clear(-1); GarageApp.Player.jumpTo(86.0);'
+		socket.send(msg);
+	}
 	
 	function showDebug(){
 		let msg = 'GarageApp.UI.showButton("subNav")';
@@ -194,7 +203,7 @@
 	function restartJump(){
 		let  msg = 'GarageApp.Events.clear(-1);  '
 			//msg += 	'GarageApp.Events.add(73.0, null, "GarageApp.Player.pause()", -1  );  '
-			msg += 	'GarageApp.Player.jumpTo(10.3);';    
+			msg += 	'GarageApp.Player.jumpTo(10.0);';    
 
 		socket.send(msg);
 	}

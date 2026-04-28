@@ -6,11 +6,11 @@ var GarageApp = GarageApp || {};
 GarageApp.Config = (function () {
 
     var appID     = 0;
-    var curVideo  = 'DelaneyComp';
+    var curVideo  = 'DelanieJumpWaveComp';
     var curVidNum = 0;
     var bLoop     = false;       // false = no loop, true = infinite, int N = loop N times
     var curLoopNum = 0;
-    var clipList  = ['DelaneyComp'];
+    var clipList  = ['DelanieJumpWaveComp'];
     var curTheme  = 0;
 
     return {
